@@ -1,3 +1,2 @@
-# Language
-Prototype programming language using Boost Spirit X3 and LLVM. 
-Inspired by many languages such as C/C++, C#, F#, Kotlin, Python, and Rust.
+# X3-LLVM
+Attempt at making a programming language using Boost Spirit X3 and LLVM.

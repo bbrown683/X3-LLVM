@@ -14,14 +14,33 @@ using namespace boost::spirit;
 
 // Holds the AST definitions.
 namespace lang::ast {
+    struct variable;
+
+    struct expressions : x3::variant<x3::forward_ast<variable>> {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
+
+    struct values : x3::variant<long, char, std::string> {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
+
     struct variable : x3::position_tagged {
         std::string name;
-        // TODO: type, lambda, etc
+        std::optional<std::string> type;
+        values values;
+    };
+
+    struct parameter : x3::position_tagged {
+        std::string name;
+        std::string type;
     };
 
     struct function : x3::position_tagged {
         std::string name;
-        // TODO: parameters, expressions, etc
+        std::vector<parameter> parameters;
+        std::vector<expressions> expressions;
     };
 
     struct type : x3::position_tagged {
@@ -47,14 +66,29 @@ namespace lang::ast {
 
     struct Printer {
         void operator()(const variable& variable) const {
-            std::cout << "Variable: " << variable.name << std::endl;
+            std::cout << "Variable: Name - " << variable.name
+            << ", Type - " << variable.type.value_or("Inferred")
+            << ", Value - " << variable.values.get() << std::endl;
         }
+
         void operator()(const type& type) const {
             std::cout << "Type: "  << type.name << std::endl;
         }
+
         void operator()(const function& function) const {
             std::cout << "Function: " << function.name << std::endl;
+
+            for(auto& parameter : function.parameters) {
+                std::cout << "\tParameter: Name - " << parameter.name
+                << ", Type - " << parameter.type << std::endl;
+            }
+
+            for(auto& expression : function.expressions) {
+                std::cout << "\t";
+                boost::apply_visitor(*this, expression);
+            }
         }
+
         void operator()(const translationUnit& translationUnit) const {
             std::cout << "Module: " << boost::algorithm::join(translationUnit.module, ".") << std::endl;
 
@@ -69,10 +103,21 @@ namespace lang::ast {
     };
 }
 
-BOOST_FUSION_ADAPT_STRUCT(lang::ast::variable, (std::string, name))
-BOOST_FUSION_ADAPT_STRUCT(lang::ast::function, (std::string, name))
-BOOST_FUSION_ADAPT_STRUCT(lang::ast::type, (std::string, name))
-BOOST_FUSION_ADAPT_STRUCT(lang::ast::translationUnit, (lang::ast::module_, module),
+BOOST_FUSION_ADAPT_STRUCT(lang::ast::variable,
+    (std::string, name),
+    (std::optional<std::string>, type),
+    (lang::ast::values, values))
+BOOST_FUSION_ADAPT_STRUCT(lang::ast::parameter,
+    (std::string, name),
+    (std::string, type))
+BOOST_FUSION_ADAPT_STRUCT(lang::ast::function,
+    (std::string, name),
+    (std::vector<lang::ast::parameter>, parameters),
+    (std::vector<lang::ast::expressions>, expressions))
+BOOST_FUSION_ADAPT_STRUCT(lang::ast::type,
+    (std::string, name))
+BOOST_FUSION_ADAPT_STRUCT(lang::ast::translationUnit,
+    (lang::ast::module_, module),
     (std::vector<lang::ast::import_>, imports),
     (std::vector<lang::ast::declarations>, declarations))
 

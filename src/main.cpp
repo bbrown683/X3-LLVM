@@ -8,9 +8,14 @@ int main() {
         import stdlib.io
         import stdlib.test
 
-        var variableTest
-        type typeTest
-        fn functionTest
+        var width : Integer = 10
+        var height = 7
+        fn calculateArea(width : Integer, height : Integer) =
+
+
+        var radius : Integer = 4
+        fn calculateDiameter(radius : Integer) =
+
         )";
 
     lang::parse(example);
