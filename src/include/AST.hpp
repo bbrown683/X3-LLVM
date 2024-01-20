@@ -14,6 +14,7 @@ using namespace boost::spirit;
 
 // Holds the AST definitions.
 namespace lang::ast {
+    struct operation;
     struct variable;
 
     struct expressions : x3::variant<x3::forward_ast<variable>> {
@@ -40,6 +41,7 @@ namespace lang::ast {
     struct function : x3::position_tagged {
         std::string name;
         std::vector<parameter> parameters;
+        std::optional<std::string> returnType;
         std::vector<expressions> expressions;
     };
 
@@ -63,44 +65,6 @@ namespace lang::ast {
         std::vector<import_> imports;
         std::vector<declarations> declarations;
     };
-
-    struct Printer {
-        void operator()(const variable& variable) const {
-            std::cout << "Variable: Name - " << variable.name
-            << ", Type - " << variable.type.value_or("Inferred")
-            << ", Value - " << variable.values.get() << std::endl;
-        }
-
-        void operator()(const type& type) const {
-            std::cout << "Type: "  << type.name << std::endl;
-        }
-
-        void operator()(const function& function) const {
-            std::cout << "Function: " << function.name << std::endl;
-
-            for(auto& parameter : function.parameters) {
-                std::cout << "\tParameter: Name - " << parameter.name
-                << ", Type - " << parameter.type << std::endl;
-            }
-
-            for(auto& expression : function.expressions) {
-                std::cout << "\t";
-                boost::apply_visitor(*this, expression);
-            }
-        }
-
-        void operator()(const translationUnit& translationUnit) const {
-            std::cout << "Module: " << boost::algorithm::join(translationUnit.module, ".") << std::endl;
-
-            for(const auto& import : translationUnit.imports) {
-                std::cout << "Import: " << boost::algorithm::join(import, ".") << std::endl;
-            }
-
-            for(const auto& declaration : translationUnit.declarations) {
-                boost::apply_visitor(*this, declaration);
-            }
-        }
-    };
 }
 
 BOOST_FUSION_ADAPT_STRUCT(lang::ast::variable,
@@ -113,6 +77,7 @@ BOOST_FUSION_ADAPT_STRUCT(lang::ast::parameter,
 BOOST_FUSION_ADAPT_STRUCT(lang::ast::function,
     (std::string, name),
     (std::vector<lang::ast::parameter>, parameters),
+    (std::optional<std::string>, returnType),
     (std::vector<lang::ast::expressions>, expressions))
 BOOST_FUSION_ADAPT_STRUCT(lang::ast::type,
     (std::string, name))

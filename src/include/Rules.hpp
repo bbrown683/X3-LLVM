@@ -1,7 +1,7 @@
 #ifndef RULES_HPP
 #define RULES_HPP
 
-#include <iostream>
+#include <boost/spirit/home/x3/numeric/int.hpp>
 #include <boost/spirit/home/x3.hpp>
 
 #include "AST.hpp"
@@ -27,7 +27,7 @@ namespace lang::rules {
     auto inline module_def = "module" >> identifier % ".";
     auto inline import_def = "import" >> identifier % ".";
     auto inline variable_def = "var" >> identifier >> -(":" >> identifier) >> "=" >> values;
-    auto inline function_def = "fn" >> identifier >> ("(" >> parameter % ',' >> ")") >> "=" >> *expression;
+    auto inline function_def = "fn" >> identifier >> ("(" >> parameter % ',' >> ")") >> -(":" >> identifier) >> "=" >> *expression;
     auto inline parameter_def = identifier >> ":" >> identifier;
     auto inline type_def = "type" >> identifier;
     auto inline expression_def = variable | ifElse;

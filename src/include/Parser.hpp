@@ -7,6 +7,7 @@
 
 #include "AST.hpp"
 #include "Rules.hpp"
+#include "Generator.hpp"
 
 typedef std::string::const_iterator iterator;
 
@@ -21,8 +22,8 @@ namespace lang {
         auto result = phrase_parse(begin, end, rules::translationUnit, x3::ascii::space, translationUnit);
         if(result && begin == end) {
             std::cout << "Parsing Complete" << std::endl;
-            constexpr ast::Printer printer;
-            printer(translationUnit);
+            codegen::Generator generator;
+            generator(translationUnit);
         } else {
             std::cout << "Parsing Failed" << std::endl;
         }

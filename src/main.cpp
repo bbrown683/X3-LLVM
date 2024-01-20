@@ -1,4 +1,3 @@
-#include <fstream>
 #include "include/Parser.hpp"
 
 int main() {
@@ -14,7 +13,7 @@ int main() {
 
 
         var radius : Integer = 4
-        fn calculateDiameter(radius : Integer) =
+        fn calculateDiameter(radius : Integer) : Integer =
 
         )";
 
