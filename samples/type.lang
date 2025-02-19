@@ -1,0 +1,8 @@
+module example.types
+
+type Car =
+    var make: str
+    var model: str
+    var year: i32
+
+    new(make: str, model: str, year: i32) -> Car

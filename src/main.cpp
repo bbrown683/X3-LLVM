@@ -1,21 +1,14 @@
 #include "include/Parser.hpp"
 
+#include <fstream>
+
 int main() {
-    const std::string example =
-        R"(
-        module example.test
-        import stdlib.io
-        import stdlib.test
 
-        var width : Integer = 10
-        var height = 7
-        fn calculateArea(width : Integer, height : Integer) =
+    std::ifstream ifstream("test.lang");
+    std::stringstream stringstream;
+    ifstream >> stringstream.rdbuf();
 
-
-        var radius : Integer = 4
-        fn calculateDiameter(radius : Integer) : Integer =
-
-        )";
-
-    lang::parse(example);
+    std::string content = stringstream.str();
+    lang::parse(content);
+    return 0;
 }

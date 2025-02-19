@@ -1,6 +1,9 @@
 #ifndef GENERATOR_HPP
 #define GENERATOR_HPP
 
+#include "boost/variant.hpp"
+#include "boost/variant/get.hpp"
+
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
@@ -24,36 +27,85 @@ namespace lang::codegen {
         std::unique_ptr<LLVMContext> context;
         std::unique_ptr<IRBuilder<>> builder;
         std::unique_ptr<Module> module;
-    private: 
-        Type* getTypeFromName(const std::string name) {
-            if(name == "Integer") {
-                return Type::getInt64Ty(*context);
-            } else if (name == "String") {
-                return Type::getInt8PtrTy(*context);
-            } else if (name == "Boolean") {
+        std::vector<std::unique_ptr<GlobalVariable>> globalVariables;
+
+        std::string getTypeFromValue(const literals_& value) {
+            switch (value.var.which()) {
+                case 0: return "f32";
+                case 1: return "f64";
+                case 2: return "bool";
+                case 3: return "i8";
+                case 4: return "i16";
+                case 5: return "i32";
+                case 6: return "i64";
+                case 7: return "char";
+                case 8: return "str";
+            }
+            return "any";
+        }
+
+        Type* getTypeFromName(const std::string& name) {
+            if (name == "bool") {
                 return Type::getInt1Ty(*context);
-            } else if (name == "Float") {
-                return Type::getFloatTy(*context);
-            } else if (name == "Double") {
-                return Type::getDoubleTy(*context);
-            } else if (name == "Character") {
+            }
+            if (name == "i8") {
                 return Type::getInt8Ty(*context);
-            } else {
-                return Type::getVoidTy(*context);
+            }
+            if(name == "i16") {
+                return Type::getInt16Ty(*context);
+            }
+            if(name == "i32") {
+                return Type::getInt32Ty(*context);
+            }
+            if (name == "i64") {
+                return Type::getInt64Ty(*context);
+            }
+            if (name == "f32") {
+                return Type::getFloatTy(*context);
+            }
+            if (name == "f64") {
+                return Type::getDoubleTy(*context);
+            }
+            if (name == "char") {
+                return Type::getInt8Ty(*context);
+            }
+            if (name == "str") {
+                return Type::getInt8PtrTy(*context);
+            }
+            return Type::getVoidTy(*context);
+        }
+    public:
+        Generator(const translationUnit& translationUnit) {
+            context = std::make_unique<LLVMContext>();
+            builder = std::make_unique<IRBuilder<>>(*context);
+            std::string modulePath = boost::algorithm::join(translationUnit.module, ".");
+            std::cout << "Module: " << modulePath << std::endl;
+            module = std::make_unique<Module>(modulePath, *context);
+
+            for(const auto& import : translationUnit.imports) {
+                std::cout << "Import: " << boost::algorithm::join(import, ".") << std::endl;
+            }
+
+            for(const auto& declaration : translationUnit.declarations) {
+                boost::apply_visitor(*this, declaration);
             }
         }
 
-    public:
-        Generator() {
-            context = std::make_unique<LLVMContext>();
-            builder = std::make_unique<IRBuilder<>>(*context);
-            module = std::make_unique<Module>("module", *context);
+        std::string GetIR() {
+            std::string moduleString;
+            raw_string_ostream rawStringOstream(moduleString);
+            module->print(rawStringOstream, nullptr);
+            return moduleString;
         }
 
         void operator()(const variable& variable) {
+            auto value = variable.literals;
+            auto type = variable.type.value_or(getTypeFromValue(value));
             std::cout << "Variable: Name - " << variable.name
-            << ", Type - " << variable.type.value_or("Inferred")
-            << ", Value - " << variable.values.get() << std::endl;
+            << ", Type - " << type
+            << ", Value - " << value.get()
+            << ", Mutable - " << variable.mutable_ << std::endl;
+            globalVariables.push_back(std::make_unique<GlobalVariable>(*module, getTypeFromName(type), !variable.mutable_, GlobalValue::ExternalLinkage, nullptr, Twine(variable.name)));
         }
 
         void operator()(const type& type) {
@@ -87,18 +139,6 @@ namespace lang::codegen {
             builder->CreateRet(ConstantInt::get(*context, APInt(64, 0)));
             
             verifyFunction(*llvmFunction);
-        }
-
-        void operator()(const translationUnit& translationUnit) {
-            std::cout << "Module: " << boost::algorithm::join(translationUnit.module, ".") << std::endl;
-
-            for(const auto& import : translationUnit.imports) {
-                std::cout << "Import: " << boost::algorithm::join(import, ".") << std::endl;
-            }
-
-            for(const auto& declaration : translationUnit.declarations) {
-                boost::apply_visitor(*this, declaration);
-            }
         }
     };
 }

@@ -3,7 +3,7 @@ project(clang_test)
 
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(Boost REQUIRED)
+find_package(Boost CONFIG)
 find_package(LLVM REQUIRED CONFIG)
 
 message(STATUS "===================================")

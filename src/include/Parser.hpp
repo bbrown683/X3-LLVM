@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <boost/spirit/home/x3.hpp>
+#include <boost/spirit/home/x3/core/skip_over.hpp>
 #include <boost/spirit/home/x3/support/utility/error_reporting.hpp>
 
 #include "AST.hpp"
@@ -19,11 +20,11 @@ namespace lang {
         Iterator const end = input.end();
 
         ast::translationUnit translationUnit;
-        auto result = phrase_parse(begin, end, rules::translationUnit, x3::ascii::space, translationUnit);
+        auto result = phrase_parse(begin, end, rules::translationUnit, rules::skipper, translationUnit);
         if(result && begin == end) {
             std::cout << "Parsing Complete" << std::endl;
-            codegen::Generator generator;
-            generator(translationUnit);
+            codegen::Generator generator(translationUnit);
+            std::cout << "LLVM IR:" << std::endl << generator.GetIR() << std::endl;
         } else {
             std::cout << "Parsing Failed" << std::endl;
         }
