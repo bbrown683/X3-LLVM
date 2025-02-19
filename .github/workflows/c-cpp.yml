@@ -10,9 +10,9 @@ jobs:
     steps:
     - name: Install Dependencies
       run: |
-        apt-get update
-        apt-get upgrade
-        apt-get install llvm-dev clang libboost-dev
+        sudo apt-get update
+        sudo apt-get upgrade
+        sudo apt-get install llvm-dev clang libboost-dev
     - uses: actions/checkout@v4
     - name: configure
       run: ./configure
