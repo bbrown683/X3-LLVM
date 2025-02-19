@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: CMake
 on:
   push:
     branches: [ "master" ]
@@ -15,4 +15,4 @@ jobs:
         sudo apt-get install cmake llvm-dev clang libboost-dev
     - uses: actions/checkout@v4
     - name: CMake
-      run: cmake CMakeLists.txt
+      run: cmake ${{github.workspace}}/CMakeLists.txt
