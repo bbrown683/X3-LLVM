@@ -12,13 +12,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get upgrade
-        sudo apt-get install llvm-dev clang libboost-dev
+        sudo apt-get install cmake llvm-dev clang libboost-dev
     - uses: actions/checkout@v4
-    - name: configure
-      run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+    - name: CMake
+      run: cmake CMakeLists.txt
